@@ -3,6 +3,7 @@ package com.komdatis.service
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.komdatis.model.Building
+import com.komdatis.dto.BuildingDto
 import com.komdatis.repository.BuildingRepository
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
@@ -13,17 +14,24 @@ import org.springframework.web.client.RestClientException
 import org.springframework.web.client.RestTemplate
 
 @Service
-class BuildingService(@Autowired private val buildingRepository: BuildingRepository) {
+class BuildingService(
+    @Autowired private val buildingRepository: BuildingRepository,
+    @Autowired private val buildingConverterService: BuildingConverterService
+) {
 
     @Value("\${connector.url}")
     private lateinit var connectorUrl: String
     @Value("\${connector.auth}")
     private lateinit var connectorAuth: String
 
-
-    fun getAllBuildings(): List<Building> = buildingRepository.findAll().toList()
+    fun getAllBuildings(): List<BuildingDto> =
+        buildingRepository.findAll().map { buildingConverterService.toDto(it) }
 
     fun createBuilding(building: Building): Building? {
+        val building = buildingConverterService.fromDto(buildingDto)
+        building.warmWater.forEach { it.building = building }
+        building.warmth.forEach { it.building = building }
+        
         val restTemplate = RestTemplate()
 
         val assetRequest = generateAssetRequest(building)
@@ -35,25 +43,29 @@ class BuildingService(@Autowired private val buildingRepository: BuildingReposit
         } catch (exception: RestClientException) {
             return null
         }
-        return buildingRepository.save(building)
+        val savedBuilding = buildingRepository.save(building)
+        return buildingConverterService.toDto(savedBuilding)
     }
 
-    fun getBuildingById(buildingId: Int): Building? = buildingRepository.findById(buildingId).orElse(null)
+    fun getBuildingById(buildingId: Int): BuildingDto? {
+        val building = buildingRepository.findById(buildingId).orElse(null) ?: return null
+        return buildingConverterService.toDto(building)
+    }
 
-    fun updateBuildingById(buildingId: Int, building: Building): Building? {
+    fun updateBuildingById(buildingId: Int, buildingDto: BuildingDto): BuildingDto? {
         val existingBuilding = buildingRepository.findById(buildingId).orElse(null) ?: return null
-
-        val updatedBuilding = existingBuilding.copy(
-            firstName = building.firstName,
-            lastName = building.lastName,
-            address = building.address,
-            livingSpace = building.livingSpace,
-            warmth = building.warmth,
-            warmWater = building.warmWater,
-            heatedBasement = building.heatedBasement,
-            apartments = building.apartments
-        )
-        return buildingRepository.save(updatedBuilding)
+        existingBuilding.apply {
+            this.firstName = buildingDto.firstName
+            this.lastName = buildingDto.lastName
+            this.address = buildingDto.address
+            this.livingSpace = buildingDto.livingSpace
+            this.warmth = buildingDto.warmth.map { buildingConverterService.fromDto(it, existingBuilding) }
+            this.warmWater = buildingDto.warmWater.map { buildingConverterService.fromDto(it, existingBuilding) }
+            this.heatedBasement = buildingDto.heatedBasement
+            this.apartments = buildingDto.apartments
+        }
+        val savedBuilding = buildingRepository.save(existingBuilding)
+        return buildingConverterService.toDto(savedBuilding)
     }
 
     fun deleteBuildingById(buildingId: Int): Boolean {
