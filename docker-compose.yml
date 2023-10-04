@@ -4,35 +4,12 @@ services:
   backend:
     container_name: komdatisbackend
     image: michaelsteinertfraunhofer/komdatisbackend:latest
-    build: 
+    build:
       context: .
       dockerfile: Dockerfile
-      args:
-        DB_URL: ${DB_URL}
-        PG_USER: ${PG_USER}
-        PG_PASSWORD: ${PG_PASSWORD}
     ports:
-      - "8080:8080" 
+      - "8080:8080"
     environment:
-      DB_URL: jdbc:postgresql://db:5432/postgres
-      PG_USER: postgres
-      PG_PASSWORD: postgres
       ENERGY_CERTIFICATES_FILE_PATH: /data/certificates/
     volumes:
       - ./data:/data
-    depends_on:
-      - db
-  db:
-    container_name: db
-    image: postgres:16
-    ports:
-      - "5432:5432"
-    environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: postgres
-    volumes:
-      - pgdata:/var/lib/postgresql/data
-
-volumes:
-  pgdata: {}
