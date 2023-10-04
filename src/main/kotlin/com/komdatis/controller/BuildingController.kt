@@ -27,7 +27,12 @@ class BuildingController(@Autowired private val buildingService: BuildingService
     @PostMapping("")
     fun createBuilding(@RequestBody building: Building): ResponseEntity<Building> {
         val savedBuilding = buildingService.createBuilding(building)
-        return ResponseEntity(savedBuilding, HttpStatus.CREATED)
+
+        return if (savedBuilding != null) {
+            ResponseEntity(savedBuilding, HttpStatus.CREATED)
+        } else {
+            ResponseEntity(HttpStatus.INTERNAL_SERVER_ERROR)
+        }
     }
 
     @PutMapping("/{id}")
