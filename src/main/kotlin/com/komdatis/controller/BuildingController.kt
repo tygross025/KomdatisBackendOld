@@ -1,6 +1,6 @@
 package com.komdatis.controller
 
-import com.komdatis.model.Building
+import com.komdatis.dto.BuildingDto
 import com.komdatis.service.BuildingService
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
@@ -12,10 +12,10 @@ import org.springframework.web.bind.annotation.*
 class BuildingController(@Autowired private val buildingService: BuildingService) {
 
     @GetMapping("")
-    fun getAllBuildings(): List<Building> = buildingService.getAllBuildings()
+    fun getAllBuildings(): List<BuildingDto> = buildingService.getAllBuildings()
 
     @GetMapping("/{id}")
-    fun getBuildingById(@PathVariable("id") buildingId: Int): ResponseEntity<Building> {
+    fun getBuildingById(@PathVariable("id") buildingId: Int): ResponseEntity<BuildingDto> {
         val building = buildingService.getBuildingById(buildingId)
         return if (building != null) {
             ResponseEntity(building, HttpStatus.OK)
@@ -25,7 +25,7 @@ class BuildingController(@Autowired private val buildingService: BuildingService
     }
 
     @PostMapping("")
-    fun createBuilding(@RequestBody building: Building): ResponseEntity<Building> {
+    fun createBuilding(@RequestBody building: BuildingDto): ResponseEntity<BuildingDto> {
         val savedBuilding = buildingService.createBuilding(building)
         return ResponseEntity(savedBuilding, HttpStatus.CREATED)
     }
@@ -33,8 +33,8 @@ class BuildingController(@Autowired private val buildingService: BuildingService
     @PutMapping("/{id}")
     fun updateBuildingById(
         @PathVariable("id") buildingId: Int,
-        @RequestBody building: Building
-    ): ResponseEntity<Building> {
+        @RequestBody building: BuildingDto
+    ): ResponseEntity<BuildingDto> {
         val updatedBuilding = buildingService.updateBuildingById(buildingId, building)
 
         return if (updatedBuilding != null) {
@@ -45,7 +45,7 @@ class BuildingController(@Autowired private val buildingService: BuildingService
     }
 
     @DeleteMapping("/{id}")
-    fun deleteBuildingById(@PathVariable("id") buildingId: Int): ResponseEntity<Building> {
+    fun deleteBuildingById(@PathVariable("id") buildingId: Int): ResponseEntity<Void> {
         val isDeleted = buildingService.deleteBuildingById(buildingId)
         return if (isDeleted) {
             ResponseEntity(HttpStatus.NO_CONTENT)

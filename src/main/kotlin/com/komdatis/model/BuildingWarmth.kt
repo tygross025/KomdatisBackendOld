@@ -11,10 +11,9 @@ data class BuildingWarmth(
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     val id: Long? = null,
 
-    @NotNull
     @ManyToOne
     @JoinColumn(name = "building_id")
-    val building: Building,
+    var building: Building,
 
     @NotNull
     @Column(name = "warmth_value")
