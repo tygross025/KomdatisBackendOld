@@ -25,9 +25,11 @@ class BuildingController(@Autowired private val buildingService: BuildingService
     }
 
     @PostMapping("")
-    fun createBuilding(@RequestBody building: BuildingDto): ResponseEntity<BuildingDto> {
-        val savedBuilding = buildingService.createBuilding(building)
-
+    fun createBuilding(
+        @RequestBody building: BuildingDto,
+        @RequestParam("save_to_data_space", defaultValue = "false") saveToDataSpace: Boolean
+        ): ResponseEntity<BuildingDto> {
+        val savedBuilding = buildingService.createBuilding(building, saveToDataSpace)
         return if (savedBuilding != null) {
             ResponseEntity(savedBuilding, HttpStatus.CREATED)
         } else {

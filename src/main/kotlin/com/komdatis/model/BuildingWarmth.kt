@@ -17,5 +17,5 @@ data class BuildingWarmth(
 
     @NotNull
     @Column(name = "warmth_value")
-    val value: Float
+    var value: Float
 )
